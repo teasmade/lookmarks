@@ -4,16 +4,54 @@ import { CreatePost } from "~/app/_components/create-post";
 import { getServerAuthSession } from "~/server/auth";
 import { api } from "~/trpc/server";
 
-export default async function Home() {
+import BookmarkSearch from "./_components/BookmarkSearch";
+import BookmarkList from "./_components/BookmarkList";
+import RefreshButton from "./_components/RefreshButton";
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: { query?: string };
+}) {
   const hello = await api.post.hello({ text: "from tRPC" });
   const session = await getServerAuthSession();
 
+  const query = searchParams?.query ?? "";
+
+  let bookmarkSearchResults = null;
+  if (query) {
+    bookmarkSearchResults = await api.bookmark.search({ query });
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-slate-100">
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
         <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-          Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
+          <span className="tracking-tight text-[hsl(280,100%,70%)]">
+            L
+            <span className="-mx-2 tracking-tighter mix-blend-screen sm:text-[4.5rem]">
+              👀
+            </span>
+            k
+          </span>
+          <span>marks</span>
         </h1>
+
+        <BookmarkSearch placeholder="Bookmarks, set, go" />
+
+        <div className="text-lg">
+          {query ? (
+            `${bookmarkSearchResults?.length} bookmarks found`
+          ) : (
+            <div className="flex items-center">
+              <span className="mr-1">two dozen random</span>
+              <RefreshButton />
+            </div>
+          )}
+        </div>
+
+        <BookmarkList searchResults={bookmarkSearchResults} />
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
           <Link
             className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
